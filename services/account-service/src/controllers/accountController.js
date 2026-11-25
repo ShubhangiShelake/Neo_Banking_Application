@@ -77,3 +77,39 @@ exports.createAccount = async (req, res) => {
         });
     }
 };
+
+// Get all accounts belonging to logged-in customer
+exports.getMyAccounts = async (req, res) => {
+    try {
+        // Get customer ID from verified JWT
+        const userId = req.user.sub;
+
+        // Find accounts belonging to this customer
+        const accounts = await Account.find({ userId })
+            .select("-__v")
+            .sort({ createdAt: -1 });
+
+        if (accounts.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No accounts found for this customer"
+            });
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Customer accounts fetched successfully",
+            count: accounts.length,
+            data: accounts
+        });
+
+    } catch (error) {
+        console.error("Get accounts error:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+
